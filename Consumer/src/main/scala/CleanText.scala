@@ -1,5 +1,3 @@
-package org.bigdata
-
 import org.apache.spark.sql.functions.{col, udf}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 

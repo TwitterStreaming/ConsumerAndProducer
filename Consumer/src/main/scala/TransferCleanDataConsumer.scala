@@ -1,4 +1,3 @@
-package org.bigdata
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
@@ -6,8 +5,9 @@ import org.apache.spark.sql.types._
 object TransferCleanDataConsumer {
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder()
-      .appName("Tweet Processor")
+      .appName("Transfer Clean Data Consumer")
       .master("local[*]")
+      .config("spark.sql.legacy.timeParserPolicy", "LEGACY")
       .getOrCreate()
 
     val socketStream = spark.readStream
@@ -28,13 +28,15 @@ object TransferCleanDataConsumer {
 
     val transformedDF = tweetsDF.select(
       col("text"),
-      col("created_at"),
-      col("geo.coordinates").alias("geo_coordinates")
+      to_timestamp(col("created_at"), "EEE MMM dd HH:mm:ss Z yyyy").alias("created_at"),
+      col("geo.coordinates").alias("geoCoordinates")
     )
 
-    val geoTransformedDF = transformedDF.withColumn("Longitude", expr("geo_coordinates[0]"))
-      .withColumn("Latitude", expr("geo_coordinates[1]"))
-      .drop("geo_coordinates")
+    val geoTransformedDF = transformedDF.withColumn("geo_coordinates", struct(
+        expr("geoCoordinates[0]").alias("lat"),
+        expr("geoCoordinates[1]").alias("lon")
+      ))
+      .drop("geoCoordinates")
 
     val hashtagsDF = geoTransformedDF.withColumn(
       "hashtags",
@@ -47,7 +49,7 @@ object TransferCleanDataConsumer {
     val finalDF = cleanedDF
     val query = finalDF
       .selectExpr(
-        "to_json(struct(text, created_at, Longitude, Latitude, hashtags)) AS value"
+        "to_json(struct(text, created_at, geo_coordinates, hashtags)) AS value"
       )
       .writeStream
       .format("kafka")
