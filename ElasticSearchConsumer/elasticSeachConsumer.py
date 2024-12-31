@@ -160,4 +160,4 @@ if __name__ == "__main__":
             indices_to_delete = ["streaming"]
             delete_indices(es_client, indices_to_delete)
     else:
-        kafka_to_elasticsearch()
+        kafka_to_elasticsearch(es_client)
