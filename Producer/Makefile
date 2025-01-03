@@ -10,7 +10,7 @@ init: ## Initialize venv
 	@python3 -m venv venv
 
 .PHONY: install
-install: ## Initialize and install all dependencies
+install: ## Install all dependencies
 	@pip install confluent-kafka
 
 .PHONY: install
