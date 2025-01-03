@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+import os
 import time
 import sys
 import json
@@ -5,6 +7,8 @@ from datetime import datetime
 from confluent_kafka import Consumer
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
+
+load_dotenv()
 
 def delete_indices(es_client, index_names):
     for index_name in index_names:
@@ -152,7 +156,13 @@ def kafka_to_elasticsearch(es_client):
 
 
 if __name__ == "__main__":
-    es_client = Elasticsearch(["https://localhost:9200"], http_auth=("elastic", "vOH*1sz*3-sf3gDC+aBNR"), verify_certs=False)   
+    es_password = os.getenv("ELASTICSEARCH_PASSWORD")
+
+    if es_password is None:
+        print("Elasticsearch password not found in .env file.")
+        sys.exit(1)
+
+    es_client = Elasticsearch(["https://localhost:9200"], http_auth=("elastic", es_password), verify_certs=False)   
     if len(sys.argv) > 1:
         print(sys.argv)
         args = sys.argv[1]

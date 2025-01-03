@@ -12,6 +12,7 @@ from confluent_kafka import Consumer, Producer
 from textblob import TextBlob
 from textblob.blob import cached_property
 
+nltk.download('punkt_tab')
 nltk.download('punkt')
 nltk.download('stopwords')
 
