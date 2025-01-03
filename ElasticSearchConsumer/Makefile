@@ -11,7 +11,7 @@ init: ## Initialize venv
 
 .PHONY: install
 install: ## Install all dependencies
-	@pip install elasticsearch confluent-kafka
+	@pip install elasticsearch confluent-kafka python-dotenv
 
 .PHONY: install
 run: ## Run the project
