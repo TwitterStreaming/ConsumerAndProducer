@@ -1,6 +1,7 @@
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
+import java.nio.file.Paths
 
 object TransferCleanDataConsumer {
   def main(args: Array[String]): Unit = {
@@ -46,6 +47,14 @@ object TransferCleanDataConsumer {
     val textCleaner = new CleanText(spark);
     val cleanedDF = textCleaner.clean(hashtagsDF, "text", "text")
 
+    val osName = System.getProperty("os.name").toLowerCase
+
+    val checkpointLocation = if (osName.contains("win")) {
+      "C:/kafka/bigdata/kafka"
+    } else {
+      Paths.get(System.getProperty("java.io.tmpdir"), "bigdata", "kafka").toString
+    }
+
     val finalDF = cleanedDF
     val query = finalDF
       .selectExpr(
@@ -55,7 +64,7 @@ object TransferCleanDataConsumer {
       .format("kafka")
       .option("kafka.bootstrap.servers", "localhost:9092")
       .option("topic", "transform-tweets")
-      .option("checkpointLocation", "C:/tmp/bigdata/kafka")
+      .option("checkpointLocation", checkpointLocation)
       .start()
 
     query.awaitTermination()
